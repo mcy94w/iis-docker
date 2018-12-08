@@ -1,63 +1,66 @@
 ![IIS Docker Image](https://avatars2.githubusercontent.com/u/6154722?v=3&s=200)
 # IIS Docker Image
 
-NOTE: This is a Windows container image. [Learn more about Windows containers](https://msdn.microsoft.com/en-us/virtualization/windowscontainers/about/about_overview).
+# Supported Windows Server, version 1803 amd64 tags
 
-## Supported tags and respective `Dockerfile` links
+- [`windowsservercore-1803, latest` (*windowsserver/Dockerfile*)](https://github.com/Microsoft/iis-docker/blob/master/windowsservercore-1803/Dockerfile)
 
-* servercore, latest ([servercore/Dockerfile](https://github.com/microsoft/iis-docker/blob/master/windowsservercore/Dockerfile))
+# Supported Windows Server, version 1709 amd64 tags
 
-This image is built from the [microsoft/iis-docker GitHub repo](https://github.com/microsoft/iis-docker).
+- [`windowsservercore-1709, latest` (*windowsserver/Dockerfile*)](https://github.com/Microsoft/iis-docker/blob/master/windowsservercore-1709/Dockerfile)
+
+# Supported Windows Server 2016 amd64 tags
+
+- [`windowsservercore-ltsc2016, latest` (*windowsserver/Dockerfile*)](https://github.com/Microsoft/iis-docker/blob/master/windowsservercore-ltsc2016/Dockerfile)
+- [`nanoserver-sac2016` (*nanoserver/Dockerfile*)](https://github.com/Microsoft/iis-docker/blob/master/nanoserver-sac2016/Dockerfile)
 
 ## What is IIS?
 Internet Information Services (IIS) for Windows® Server is a flexible, secure and manageable Web server for hosting anything on the Web.
 
 ## How to use this image?
 ### Create a Dockerfile with your website
-```
+```Dockerfile
 FROM microsoft/iis
 
-RUN mkdir C:\site
+RUN powershell -NoProfile -Command Remove-Item -Recurse C:\inetpub\wwwroot\*
 
-RUN powershell -NoProfile -Command \
-    Import-module IISAdministration; \
-    New-IISSite -Name "Site" -PhysicalPath C:\site -BindingInformation "*:8000:"
+WORKDIR /inetpub/wwwroot
 
-EXPOSE 8000
-
-ADD content/ /site
+COPY content/ .
 ```
 You can then build and run the Docker image:
 ```
 $ docker build -t iis-site .
-$ docker run -d -p 8000:8000 --name my-running-site iis-site
+$ docker run -d -p 8000:80 --name my-running-site iis-site
 ```
 
 There is no need to specify an `ENTRYPOINT` in your Dockerfile since the `microsoft/iis` base image already includes an entrypoint application that monitors the status of the IIS World Wide Web Publishing Service (W3SVC).
 
 ### Verify in the browser
 
-> With the current release, you can't use `http://localhost` to browse your site from the container host. This is because of a known behavior in WinNAT, and will be resolved in future. Until that is addressed, you need to use the IP address of the container.
+#### On newer hosts (Windows Server, version 1803 and newer)
 
-Once the container starts, you'll need to finds its IP address so that you can connect to your running container from a browser. You use the `docker inspect` command to do that:
+You can connect to the running container using `http://localhost:8000` in the example shown.
 
-`docker inspect -f "{{ .NetworkSettings.Networks.nat.IPAddress }}" my-running-site`
+#### On older hosts (Windows Server, version 1709 and older)
 
-You will see an output similar to this:
+> If you are running an older host, you cannot use `http://localhost` to browse your site from the container host. This is because of a known behavior in WinNAT and you need to use the IP address of the container.
 
-```
-172.28.103.186
-```
+ Once the container starts, you'll need to finds its IP address so that you can connect to your running container from a browser. You use the `docker inspect` command to do that:	
+ `docker inspect -f "{{ .NetworkSettings.Networks.nat.IPAddress }}" my-running-site`	
+ You will see an output similar to this:	
+ ```	
+172.28.103.186	
+```	
+ You can connect the running container using the IP address and configured port, `http://172.28.103.186:80` in the example shown.
 
-You can connect the running container using the IP address and configured port, `http://172.28.103.186:8000` in the example shown.
-
-In addition to static content, IIS can run other workloads including, but limited to ASP.NET, ASP.NET Core, NodeJS, PHP, and Apache Tomcat.
+In addition to static content, IIS can run other workloads including, but not limited to ASP.NET, ASP.NET Core, NodeJS, PHP, and Apache Tomcat.
 
 For a comprehensive tutorial on running an ASP.NET app in a container, check out [the tutorial on the docs site](https://docs.microsoft.com/en-us/dotnet/articles/framework/docker/aspnetmvc).
 
 
 ## Supported Docker Versions
-This image has been tested on Docker Versions 1.12.1-beta26 or higher.
+This image has been tested on Docker Versions 17.10 or higher.
 
 ## License
 MICROSOFT SOFTWARE SUPPLEMENTAL LICENSE TERMS
