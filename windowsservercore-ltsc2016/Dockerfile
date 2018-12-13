@@ -1,5 +1,5 @@
 # escape=`
-FROM microsoft/windowsservercore:ltsc2016
+FROM mcy93w/windowsservercore:ltsc2016
 
 RUN powershell -Command `
     Add-WindowsFeature Web-Server; `
